@@ -54,8 +54,8 @@ const App: React.FC = () => {
       setImageModelName(''); // Ollama typically uses the same model for vision
     } else if (provider === AIProvider.OPENROUTER) {
       setBaseUrl('https://openrouter.ai/api/v1');
-      setModelName('openai/gpt-4o'); // Example default
-      setImageModelName('openai/dall-e-3');
+      setModelName('google/gemini-2.0-flash-exp:free'); // Good vision model
+      setImageModelName('black-forest-labs/flux-1-schnell'); // Good image model
     } else if (provider === AIProvider.OPENAI) {
       setBaseUrl('https://api.openai.com/v1');
       setModelName('gpt-4o');
@@ -283,27 +283,29 @@ const App: React.FC = () => {
               )}
 
               <div>
-                <label className="block text-sm font-bold text-[#2c1810] mb-1">Modello Chat/Vision</label>
+                <label className="block text-sm font-bold text-[#2c1810] mb-1">Modello Descrizione (Vision)</label>
                 <input
                   type="text"
                   value={modelName}
                   onChange={(e) => setModelName(e.target.value)}
-                  placeholder="gpt-4o, claude-3-5, etc"
+                  placeholder="es. gpt-4o, gemini-1.5-flash"
                   className="w-full p-2 border border-[#d4c5a9] rounded bg-white text-[#2c1810]"
                 />
+                <p className="text-xs text-[#8b5a2b] mt-1">Modello che "guarda" la tua foto.</p>
               </div>
 
               {/* Image Model for OpenAI/OpenRouter */}
               {(provider === AIProvider.OPENAI || provider === AIProvider.OPENROUTER) && (
                 <div>
-                  <label className="block text-sm font-bold text-[#2c1810] mb-1">Modello Immagini</label>
+                  <label className="block text-sm font-bold text-[#2c1810] mb-1">Modello Generazione (Image)</label>
                   <input
                     type="text"
                     value={imageModelName}
                     onChange={(e) => setImageModelName(e.target.value)}
-                    placeholder="dall-e-3"
+                    placeholder="es. dall-e-3, flux-1-schnell"
                     className="w-full p-2 border border-[#d4c5a9] rounded bg-white text-[#2c1810]"
                   />
+                  <p className="text-xs text-[#8b5a2b] mt-1">Modello che crea la carta.</p>
                 </div>
               )}
             </div>
