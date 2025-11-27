@@ -1,0 +1,68 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom Antique Styles */
+:root {
+  --paper-color: #f0e6d2;
+  --ink-color: #2c1810;
+  --accent-red: #8b1c1c;
+  --accent-gold: #b8860b;
+}
+
+body {
+  background-color: var(--paper-color);
+  color: var(--ink-color);
+  font-family: 'Crimson Text', serif;
+  /* Subtle noise texture for paper effect */
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E");
+}
+
+h1, h2, h3, .vintage-font {
+  font-family: 'Cinzel Decorative', serif;
+}
+
+/* Vintage Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: #e4d5b7; 
+}
+::-webkit-scrollbar-thumb {
+  background: #8b5a2b; 
+  border-radius: 2px;
+  border: 1px solid #4a3b2a;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #6b4226; 
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.8s ease-out forwards;
+}
+
+.pattern-bg {
+  background-color: #f0e6d2;
+  background-image: radial-gradient(#b8860b 0.5px, transparent 0.5px), radial-gradient(#b8860b 0.5px, #f0e6d2 0.5px);
+  background-size: 20px 20px;
+  background-position: 0 0, 10px 10px;
+  opacity: 1;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f0e6d2;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #b8860b;
+  border-radius: 4px;
+}

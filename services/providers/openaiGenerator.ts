@@ -54,7 +54,21 @@ export class OpenAIGenerator implements ImageGenerator {
             }),
         });
 
-        const data = await response.json();
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`API Error (Vision) [${response.status}]: ${errorText}`);
+        }
+
+        const text = await response.text();
+        if (!text) throw new Error("API Error (Vision): Empty response");
+
+        let data;
+        try {
+            data = JSON.parse(text);
+        } catch (e) {
+            throw new Error(`API Error (Vision): Failed to parse JSON. Raw response: ${text.substring(0, 200)}...`);
+        }
+
         if (data.error) throw new Error(`API Error (Vision): ${data.error.message}`);
         return data.choices[0].message.content;
     }
@@ -102,7 +116,21 @@ export class OpenAIGenerator implements ImageGenerator {
             }),
         });
 
-        const data = await response.json();
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`API Error (Image) [${response.status}]: ${errorText}`);
+        }
+
+        const text = await response.text();
+        if (!text) throw new Error("API Error (Image): Empty response");
+
+        let data;
+        try {
+            data = JSON.parse(text);
+        } catch (e) {
+            throw new Error(`API Error (Image): Failed to parse JSON. Raw response: ${text.substring(0, 200)}...`);
+        }
+
         if (data.error) throw new Error(`API Error (Image): ${data.error.message}`);
         return `data:image/png;base64,${data.data[0].b64_json}`;
     }
