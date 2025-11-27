@@ -1,6 +1,14 @@
 services:
   app:
     build: .
-    ports:
-      - "8080:80"
+    container_name: merc_plv
+    # ports:
+    # - "8080:80"
     restart: always
+
+    networks:
+      - plv_network
+
+networks:
+  plv_network:
+    external: true

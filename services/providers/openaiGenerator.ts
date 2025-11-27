@@ -11,24 +11,31 @@ export class OpenAIGenerator implements ImageGenerator {
         config: ProviderConfig
     ): Promise<string> {
         const apiKey = config.apiKey;
-        if (!apiKey) throw new Error("OpenAI API Key is required");
+        if (!apiKey) throw new Error("API Key is required");
 
-        // Step 1: Describe the image using GPT-4o
-        const description = await this.describeImage(imageBase64, apiKey);
+        const baseUrl = config.baseUrl || "https://api.openai.com/v1";
+        const chatModel = config.modelName || "gpt-4o";
+        const imageModel = config.imageModelName || "dall-e-3";
 
-        // Step 2: Generate the card using DALL-E 3
-        return await this.generateImage(description, cardName, cardDescription, agingFilter, apiKey);
+        // Step 1: Describe the image
+        const description = await this.describeImage(imageBase64, apiKey, baseUrl, chatModel);
+
+        // Step 2: Generate the card
+        return await this.generateImage(description, cardName, cardDescription, agingFilter, apiKey, baseUrl, imageModel);
     }
 
-    private async describeImage(base64: string, apiKey: string): Promise<string> {
-        const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    private async describeImage(base64: string, apiKey: string, baseUrl: string, model: string): Promise<string> {
+        const response = await fetch(`${baseUrl}/chat/completions`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
                 "Authorization": `Bearer ${apiKey}`,
+                // OpenRouter specific headers
+                "HTTP-Referer": window.location.origin,
+                "X-Title": "Mercante in Fiera Persona",
             },
             body: JSON.stringify({
-                model: "gpt-4o",
+                model: model,
                 messages: [
                     {
                         role: "user",
@@ -48,7 +55,7 @@ export class OpenAIGenerator implements ImageGenerator {
         });
 
         const data = await response.json();
-        if (data.error) throw new Error(`OpenAI Vision Error: ${data.error.message}`);
+        if (data.error) throw new Error(`API Error (Vision): ${data.error.message}`);
         return data.choices[0].message.content;
     }
 
@@ -57,7 +64,9 @@ export class OpenAIGenerator implements ImageGenerator {
         cardName: string,
         cardDescription: string,
         agingFilter: AgingFilter,
-        apiKey: string
+        apiKey: string,
+        baseUrl: string,
+        model: string
     ): Promise<string> {
         let filterInstruction = "";
         switch (agingFilter) {
@@ -76,14 +85,16 @@ export class OpenAIGenerator implements ImageGenerator {
       The image should look like a scanned antique card.
     `;
 
-        const response = await fetch("https://api.openai.com/v1/images/generations", {
+        const response = await fetch(`${baseUrl}/images/generations`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
                 "Authorization": `Bearer ${apiKey}`,
+                "HTTP-Referer": window.location.origin,
+                "X-Title": "Mercante in Fiera Persona",
             },
             body: JSON.stringify({
-                model: "dall-e-3",
+                model: model,
                 prompt: prompt,
                 n: 1,
                 size: "1024x1024",
@@ -92,7 +103,7 @@ export class OpenAIGenerator implements ImageGenerator {
         });
 
         const data = await response.json();
-        if (data.error) throw new Error(`DALL-E 3 Error: ${data.error.message}`);
+        if (data.error) throw new Error(`API Error (Image): ${data.error.message}`);
         return `data:image/png;base64,${data.data[0].b64_json}`;
     }
 }

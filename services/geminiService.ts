@@ -35,10 +35,14 @@ export const promptSelectKey = async (): Promise<void> => {
   }
 };
 
+import { AnthropicGenerator } from "./providers/anthropicGenerator";
+
 const generators: Record<AIProvider, ImageGenerator> = {
   [AIProvider.GEMINI]: new GeminiGenerator(),
   [AIProvider.OPENAI]: new OpenAIGenerator(),
   [AIProvider.OLLAMA]: new OllamaGenerator(),
+  [AIProvider.ANTHROPIC]: new AnthropicGenerator(),
+  [AIProvider.OPENROUTER]: new OpenAIGenerator(), // OpenRouter is OpenAI compatible
 };
 
 export const generateMercanteCard = async (

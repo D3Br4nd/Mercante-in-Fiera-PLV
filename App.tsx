@@ -12,8 +12,9 @@ const App: React.FC = () => {
   // Provider Config State
   const [provider, setProvider] = useState<AIProvider>(AIProvider.GEMINI);
   const [apiKey, setApiKey] = useState<string>('');
-  const [baseUrl, setBaseUrl] = useState<string>('http://localhost:11434');
+  const [baseUrl, setBaseUrl] = useState<string>(''); // Default depends on provider
   const [modelName, setModelName] = useState<string>('');
+  const [imageModelName, setImageModelName] = useState<string>('');
   const [showConfig, setShowConfig] = useState<boolean>(false);
 
   // Image State
@@ -45,13 +46,39 @@ const App: React.FC = () => {
     initKey();
   }, []);
 
+  // Update defaults when provider changes
+  useEffect(() => {
+    if (provider === AIProvider.OLLAMA) {
+      setBaseUrl('http://localhost:11434');
+      setModelName('llava');
+      setImageModelName(''); // Ollama typically uses the same model for vision
+    } else if (provider === AIProvider.OPENROUTER) {
+      setBaseUrl('https://openrouter.ai/api/v1');
+      setModelName('openai/gpt-4o'); // Example default
+      setImageModelName('openai/dall-e-3');
+    } else if (provider === AIProvider.OPENAI) {
+      setBaseUrl('https://api.openai.com/v1');
+      setModelName('gpt-4o');
+      setImageModelName('dall-e-3');
+    } else if (provider === AIProvider.ANTHROPIC) {
+      setBaseUrl(''); // Anthropic has a default base URL
+      setModelName('claude-3-5-sonnet-20240620');
+      setImageModelName(''); // Anthropic doesn't have a separate image model for generation
+    } else if (provider === AIProvider.GEMINI) {
+      setBaseUrl(''); // Gemini has a default base URL
+      setModelName('gemini-2.0-flash-exp');
+      setImageModelName(''); // Gemini uses the same model for vision
+    }
+  }, [provider]);
+
   const handleKeySelection = async () => {
     try {
       await promptSelectKey();
       setHasKey(true);
     } catch (e) {
       console.error("Failed to select key", e);
-      setError("Impossibile selezionare la chiave API. Riprova.");
+      // Fallback to manual entry if extension fails or user cancels
+      enterWithProvider(AIProvider.GEMINI);
     }
   };
 
@@ -100,9 +127,10 @@ const App: React.FC = () => {
     try {
       const config: ProviderConfig = {
         provider,
-        apiKey: provider === AIProvider.GEMINI ? undefined : apiKey, // Gemini might use injected key
-        baseUrl: provider === AIProvider.OLLAMA ? baseUrl : undefined,
+        apiKey: apiKey || undefined, // Allow empty if using injected key (Gemini)
+        baseUrl: baseUrl || undefined,
         modelName: modelName || undefined,
+        imageModelName: imageModelName || undefined,
       };
 
       const resultImage = await generateMercanteCard(
@@ -124,10 +152,10 @@ const App: React.FC = () => {
   // If using Gemini via extension, we might show the landing page.
   // But now we allow other providers, so we should always show the main UI
   // and let the user configure the provider in settings.
-  // However, to keep the "Entrance" feel, we can keep the landing page 
+  // However, to keep the "Entrance" feel, we can keep the landing page
   // but add a "Configure other providers" option or just bypass it if they want to use OpenAI/Ollama.
 
-  // For simplicity, let's treat "hasKey" as "isReadyToEnter". 
+  // For simplicity, let's treat "hasKey" as "isReadyToEnter".
   // If they select another provider, we set hasKey = true.
 
   const enterWithProvider = (p: AIProvider) => {
@@ -154,19 +182,11 @@ const App: React.FC = () => {
             >
               ENTRA CON GOOGLE GEMINI
             </button>
-            <div className="flex gap-2">
-              <button
-                onClick={() => enterWithProvider(AIProvider.OPENAI)}
-                className="flex-1 py-2 bg-[#2c1810] hover:bg-[#1a0e09] text-[#e4d5b7] vintage-font font-bold rounded shadow border border-[#b8860b]"
-              >
-                OPENAI
-              </button>
-              <button
-                onClick={() => enterWithProvider(AIProvider.OLLAMA)}
-                className="flex-1 py-2 bg-[#2c1810] hover:bg-[#1a0e09] text-[#e4d5b7] vintage-font font-bold rounded shadow border border-[#b8860b]"
-              >
-                OLLAMA
-              </button>
+            <div className="grid grid-cols-2 gap-2">
+              <button onClick={() => enterWithProvider(AIProvider.OPENAI)} className="py-2 bg-[#2c1810] hover:bg-[#1a0e09] text-[#e4d5b7] vintage-font font-bold rounded shadow border border-[#b8860b]">OPENAI</button>
+              <button onClick={() => enterWithProvider(AIProvider.ANTHROPIC)} className="py-2 bg-[#2c1810] hover:bg-[#1a0e09] text-[#e4d5b7] vintage-font font-bold rounded shadow border border-[#b8860b]">CLAUDE</button>
+              <button onClick={() => enterWithProvider(AIProvider.OPENROUTER)} className="py-2 bg-[#2c1810] hover:bg-[#1a0e09] text-[#e4d5b7] vintage-font font-bold rounded shadow border border-[#b8860b]">OPENROUTER</button>
+              <button onClick={() => enterWithProvider(AIProvider.OLLAMA)} className="py-2 bg-[#2c1810] hover:bg-[#1a0e09] text-[#e4d5b7] vintage-font font-bold rounded shadow border border-[#b8860b]">OLLAMA</button>
             </div>
           </div>
 
@@ -227,47 +247,65 @@ const App: React.FC = () => {
                   className="w-full p-2 border border-[#d4c5a9] rounded bg-[#f0e6d2] text-[#2c1810]"
                 >
                   <option value={AIProvider.GEMINI}>Google Gemini</option>
-                  <option value={AIProvider.OPENAI}>OpenAI (DALL-E 3)</option>
+                  <option value={AIProvider.OPENAI}>OpenAI</option>
+                  <option value={AIProvider.ANTHROPIC}>Anthropic (Claude)</option>
+                  <option value={AIProvider.OPENROUTER}>OpenRouter</option>
                   <option value={AIProvider.OLLAMA}>Ollama (Locale)</option>
                 </select>
               </div>
 
-              {provider !== AIProvider.GEMINI && (
+              {/* API Key for all except Ollama (usually) */}
+              {provider !== AIProvider.OLLAMA && (
                 <div>
                   <label className="block text-sm font-bold text-[#2c1810] mb-1">API Key</label>
                   <input
                     type="password"
                     value={apiKey}
                     onChange={(e) => setApiKey(e.target.value)}
-                    placeholder="sk-..."
+                    placeholder={provider === AIProvider.GEMINI ? "Opzionale se usi estensione" : "sk-..."}
                     className="w-full p-2 border border-[#d4c5a9] rounded bg-white text-[#2c1810]"
                   />
                 </div>
               )}
 
-              {provider === AIProvider.OLLAMA && (
+              {/* Base URL for Ollama, OpenRouter, or Custom OpenAI */}
+              {(provider === AIProvider.OLLAMA || provider === AIProvider.OPENROUTER || provider === AIProvider.OPENAI) && (
                 <div>
                   <label className="block text-sm font-bold text-[#2c1810] mb-1">Base URL</label>
                   <input
                     type="text"
                     value={baseUrl}
                     onChange={(e) => setBaseUrl(e.target.value)}
-                    placeholder="http://localhost:11434"
+                    placeholder="https://..."
                     className="w-full p-2 border border-[#d4c5a9] rounded bg-white text-[#2c1810]"
                   />
                 </div>
               )}
 
               <div>
-                <label className="block text-sm font-bold text-[#2c1810] mb-1">Modello (Opzionale)</label>
+                <label className="block text-sm font-bold text-[#2c1810] mb-1">Modello Chat/Vision</label>
                 <input
                   type="text"
                   value={modelName}
                   onChange={(e) => setModelName(e.target.value)}
-                  placeholder={provider === AIProvider.OLLAMA ? "llava" : "Default"}
+                  placeholder="gpt-4o, claude-3-5, etc"
                   className="w-full p-2 border border-[#d4c5a9] rounded bg-white text-[#2c1810]"
                 />
               </div>
+
+              {/* Image Model for OpenAI/OpenRouter */}
+              {(provider === AIProvider.OPENAI || provider === AIProvider.OPENROUTER) && (
+                <div>
+                  <label className="block text-sm font-bold text-[#2c1810] mb-1">Modello Immagini</label>
+                  <input
+                    type="text"
+                    value={imageModelName}
+                    onChange={(e) => setImageModelName(e.target.value)}
+                    placeholder="dall-e-3"
+                    className="w-full p-2 border border-[#d4c5a9] rounded bg-white text-[#2c1810]"
+                  />
+                </div>
+              )}
             </div>
           </div>
         </div>
