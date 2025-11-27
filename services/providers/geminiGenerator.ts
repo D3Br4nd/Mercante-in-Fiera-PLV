@@ -59,12 +59,7 @@ export class GeminiGenerator implements ImageGenerator {
 
         try {
             const response = await ai.models.generateContent({
-                model: 'gemini-2.0-flash', // Updated to latest flash or keep 'gemini-1.5-flash' / 'gemini-3-pro-image-preview' as per original? 
-                // Original used 'gemini-3-pro-image-preview' which might be a specific preview model.
-                // Let's stick to a safe default or what was there if it works. 
-                // Actually 'gemini-3-pro-image-preview' sounds like a very specific preview. 
-                // I'll use the config modelName if provided, else default to 'gemini-2.0-flash-exp' or similar if available, 
-                // but to be safe let's use the one from original code as default if not specified.
+                // Use the config modelName if provided, else default to 'gemini-2.0-flash-exp'
                 model: config.modelName || 'gemini-2.0-flash-exp',
                 contents: {
                     parts: [
