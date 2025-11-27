@@ -54,7 +54,7 @@ const App: React.FC = () => {
       setImageModelName(''); // Ollama typically uses the same model for vision
     } else if (provider === AIProvider.OPENROUTER) {
       setBaseUrl('https://openrouter.ai/api/v1');
-      setModelName('google/gemini-2.0-flash-exp:free'); // Good vision model
+      setModelName('google/gemini-flash-1.5'); // More stable than experimental
       setImageModelName('black-forest-labs/flux-1-schnell'); // Good image model
     } else if (provider === AIProvider.OPENAI) {
       setBaseUrl('https://api.openai.com/v1');
